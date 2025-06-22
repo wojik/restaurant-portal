@@ -3,8 +3,14 @@
   <div class="search-reviews-container">
     <h1>Wyszukaj Komentarze</h1>
     <div class="search-bar">
-      <input type="text" v-model="searchQuery" placeholder="Wpisz frazę do wyszukania w komentarzach..." class="search-input">
-      <button @click="searchReviews" class="btn-primary">Szukaj</button>
+      <input 
+        type="text" 
+        v-model="searchQuery" 
+        @input="searchReviews" 
+        @keyup.enter="searchReviews" 
+        placeholder="Wpisz frazę do wyszukania w komentarzach..." 
+        class="search-input"
+      >
     </div>
 
     <div v-if="loading" class="loading-message">Wyszukiwanie komentarzy...</div>
@@ -13,7 +19,10 @@
     <ul class="reviews-list" v-if="reviews.length">
       <li v-for="review in reviews" :key="review.id" class="review-item">
         <div class="review-header">
-          <strong>{{ review.user_username }}</strong> ({{ review.restaurant_name }})
+          <strong>{{ review.user_username }}</strong>
+          <router-link :to="{ name: 'RestaurantDetail', params: { id: review.restaurant_id }}" class="restaurant-link" title="Przejdź do szczegółów restauracji">
+            {{ review.restaurant_name }}
+          </router-link>
           <span class="review-rating">Ocena: {{ review.rating }}/5</span>
         </div>
         <p class="review-comment">{{ review.comment }}</p>
