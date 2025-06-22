@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    host: true, // Pozwala na dostęp z innych urządzeń w sieci lokalnej
+    host: true,
     port: 5173, // Domyślny port Vite
   }
 })

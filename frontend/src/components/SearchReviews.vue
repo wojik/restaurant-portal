@@ -41,7 +41,7 @@ const searchQuery = ref('');
 const reviews = ref([]);
 const loading = ref(false);
 const error = ref(null);
-const searchPerformed = ref(false); // Flaga, czy wyszukiwanie zostało już wykonane
+const searchPerformed = ref(false);
 
 const searchReviews = async () => {
   if (!searchQuery.value.trim()) {

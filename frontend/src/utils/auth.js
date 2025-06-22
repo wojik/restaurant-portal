@@ -1,7 +1,6 @@
 // frontend/src/utils/auth.js
 import { reactive, watch } from 'vue';
 
-// Stan autoryzacji jako reaktywny obiekt
 export const authState = reactive({
   isLoggedIn: !!localStorage.getItem('authToken'),
   currentUserId: localStorage.getItem('authToken') ? parseInt(localStorage.getItem('authToken')) : null,
@@ -26,6 +25,3 @@ export function logout() {
   authState.currentUsername = null;
 }
 
-// Możesz dodać watchery, aby reagować na zmiany localStorage
-// lub polegać na ręcznym wywołaniu login/logout.
-// Dla tej prostej aplikacji, ręczne wywołania są wystarczające.

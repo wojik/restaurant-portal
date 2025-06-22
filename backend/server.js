@@ -2,7 +2,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto'); // Wbudowany moduł Node.js do generowania tokenów
+const crypto = require('crypto'); 
 
 const app = express();
 const PORT = 3001;
@@ -17,7 +17,6 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
     } else {
         console.log('Połączono z bazą danych SQLite.');
         db.serialize(() => {
-            // Tabela użytkowników - DODANO NOWE KOLUMNY
             db.run(`CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
@@ -26,7 +25,6 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
                 reset_password_token TEXT,
                 reset_password_expires INTEGER
             )`);
-            // Pozostałe tabele bez zmian
             db.run(`CREATE TABLE IF NOT EXISTS restaurants (
                 id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, address TEXT NOT NULL, description TEXT,
                 position TEXT, photo_url TEXT, menu_types TEXT, owner_id INTEGER NOT NULL,
@@ -44,20 +42,17 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
     }
 });
 
-// --- Funkcje pomocnicze i middleware (bez zmian) ---
+// --- Funkcje pomocnicze i middleware ---
 function runQuery(sql, params = []) { return new Promise((resolve, reject) => { db.run(sql, params, function (err) { if (err) reject(err); else resolve({ id: this.lastID, changes: this.changes }); }); }); }
 function getQuery(sql, params = []) { return new Promise((resolve, reject) => { db.get(sql, params, (err, row) => { if (err) reject(err); else resolve(row); }); }); }
 function allQuery(sql, params = []) { return new Promise((resolve, reject) => { db.all(sql, params, (err, rows) => { if (err) reject(err); else resolve(rows); }); }); }
 const authenticateToken = async (req, res, next) => { const authHeader = req.headers['authorization']; const token = authHeader && authHeader.split(' ')[1]; if (token == null || isNaN(parseInt(token))) { return res.status(401).json({ message: 'Brak tokena autoryzacji lub token jest nieprawidłowy.' }); } try { const userId = parseInt(token); const user = await getQuery('SELECT id, username FROM users WHERE id = ?', [userId]); if (!user) { return res.status(403).json({ message: 'Nieprawidłowy token autoryzacji: użytkownik nie istnieje.' }); } req.userId = user.id; next(); } catch (error) { res.status(500).json({ message: 'Błąd autoryzacji', error: error.message }); } };
 
 // --- Endpointy API ---
-// Rejestracja i logowanie bez zmian
 app.post('/api/register', async (req, res) => { const { username, email, password } = req.body; if (!username || !email || !password) { return res.status(400).json({ message: 'Wszystkie pola są wymagane.' }); } try { const hashedPassword = await bcrypt.hash(password, 10); await runQuery('INSERT INTO users (username, email, password) VALUES (?, ?, ?)', [username, email, hashedPassword]); res.status(201).json({ message: 'Użytkownik zarejestrowany pomyślnie.' }); } catch (error) { if (error.message.includes('UNIQUE constraint failed')) { res.status(409).json({ message: 'Nazwa użytkownika lub email już istnieje.' }); } else { res.status(500).json({ message: 'Błąd rejestracji.', error: error.message }); } } });
 app.post('/api/login', async (req, res) => { const { username, password } = req.body; try { const user = await getQuery('SELECT * FROM users WHERE username = ?', [username]); if (!user) { return res.status(404).json({ message: 'Użytkownik nie znaleziony.' }); } const isMatch = await bcrypt.compare(password, user.password); if (!isMatch) { return res.status(401).json({ message: 'Nieprawidłowe hasło.' }); } res.json({ message: 'Logowanie pomyślne.', token: user.id, username: user.username }); } catch (error) { res.status(500).json({ message: 'Błąd logowania.', error: error.message }); } });
 
-// --- NOWE ENDPOINTY DO RESETOWANIA HASŁA ---
 
-// Krok 1: Użytkownik prosi o link do resetowania hasła
 app.post('/api/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
@@ -78,7 +73,6 @@ app.post('/api/forgot-password', async (req, res) => {
         );
 
         // --- SYMULACJA WYSYŁANIA E-MAILA ---
-        // W prawdziwej aplikacji tutaj byłby kod do wysyłki e-maila
         console.log('--- LINK DO RESETOWANIA HASŁA (SKOPIUJ I WKLEJ DO PRZEGLĄDARKI) ---');
         console.log(`http://localhost:5173/reset-password/${token}`);
         console.log('-----------------------------------------------------------------');
@@ -90,7 +84,6 @@ app.post('/api/forgot-password', async (req, res) => {
     }
 });
 
-// Krok 2: Użytkownik resetuje hasło za pomocą tokenu
 app.post('/api/reset-password', async (req, res) => {
     const { token, password } = req.body;
     try {
@@ -115,9 +108,6 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
-
-// --- Pozostałe endpointy (bez zmian) ---
-// Pobieranie restauracji, komentarzy itp.
 app.get('/api/restaurants', async (req, res) => { let { search, menu_type, near, sort_by } = req.query; let sql = `SELECT r.id, r.name, r.address, r.description, r.position, r.photo_url, r.menu_types, r.owner_id, COUNT(rev.id) AS review_count, AVG(rev.rating) AS average_rating, u.username AS owner_username FROM restaurants r LEFT JOIN reviews rev ON r.id = rev.restaurant_id LEFT JOIN users u ON r.owner_id = u.id`; let params = []; let conditions = []; if (search) { conditions.push(`r.name LIKE ?`); params.push(`%${search}%`); } if (menu_type) { conditions.push(`r.menu_types LIKE ?`); params.push(`%${menu_type}%`); } if (near) { conditions.push(`r.position LIKE ?`); params.push(`%${near}%`); } if (conditions.length > 0) { sql += ` WHERE ` + conditions.join(' AND '); } sql += ` GROUP BY r.id`; if (sort_by === 'name') { sql += ` ORDER BY r.name ASC`; } else if (sort_by === 'average_rating') { sql += ` ORDER BY average_rating DESC`; } else { sql += ` ORDER BY r.name ASC`; } try { const restaurants = await allQuery(sql, params); res.json({ message: 'success', data: restaurants }); } catch (error) { res.status(500).json({ message: 'Błąd pobierania restauracji.', error: error.message }); } });
 app.get('/api/restaurants/:id', async (req, res) => { const restaurantId = req.params.id; try { const restaurant = await getQuery(`SELECT r.id, r.name, r.address, r.description, r.position, r.photo_url, r.menu_types, r.owner_id, COUNT(rev.id) AS review_count, AVG(rev.rating) AS average_rating, u.username AS owner_username FROM restaurants r LEFT JOIN reviews rev ON r.id = rev.restaurant_id LEFT JOIN users u ON r.owner_id = u.id WHERE r.id = ? GROUP BY r.id`, [restaurantId]); if (!restaurant) { return res.status(404).json({ message: 'Restauracja nie znaleziona.' }); } const reviews = await allQuery(`SELECT rev.*, u.username AS user_username FROM reviews rev JOIN users u ON rev.user_id = u.id WHERE rev.restaurant_id = ? ORDER BY rev.created_at DESC`, [restaurantId]); res.json({ message: 'success', data: { ...restaurant, reviews } }); } catch (error) { res.status(500).json({ message: 'Błąd pobierania szczegółów restauracji.', error: error.message }); } });
 app.post('/api/restaurants', authenticateToken, async (req, res) => { const { name, address, description, position, photo_url, menu_types } = req.body; if (!name || !address) { return res.status(400).json({ message: 'Nazwa i adres restauracji są wymagane.' }); } try { const result = await runQuery('INSERT INTO restaurants (name, address, description, position, photo_url, menu_types, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)', [name, address, description || null, position || null, photo_url || null, menu_types || null, req.userId]); res.status(201).json({ message: 'Restauracja dodana pomyślnie.', restaurant_id: result.id }); } catch (error) { res.status(500).json({ message: 'Błąd dodawania restauracji.', error: error.message }); } });

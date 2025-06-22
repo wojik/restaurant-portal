@@ -2,16 +2,16 @@
   <div class="restaurant-list-container">
     <h1>Restauracje</h1>
 
-    <!-- Pasek filtrowania i sortowania -->
+
     <div class="filter-sort-bar">
-      <!-- Wyszukiwanie po nazwie i menu (bez zmian) -->
+
       <input v-model="searchQuery" @input="fetchRestaurants" placeholder="Szukaj po nazwie..." class="filter-input">
       <input v-model="menuTypeFilter" @input="fetchRestaurants" placeholder="Filtruj po menu..." class="filter-input">
       <select v-model="sortBy" @change="fetchRestaurants" class="filter-select">
         <option value="name">Sortuj po nazwie</option>
         <option value="average_rating">Sortuj po ocenie</option>
       </select>
-      <!-- Pole do ręcznego wpisywania lokalizacji -->
+
       <input 
         v-model="locationQuery" 
         @input="handleManualLocationInput" 
@@ -19,7 +19,6 @@
         class="filter-input location-input"
       >
       
-      <!-- Przycisk przełączający filtr geolokalizacyjny -->
       <button @click="toggleGeoFilter" :class="['btn-location', {'active': isGeoFilterActive}]" title="Filtruj restauracje w oparciu o Twoją lokalizację">
         <span v-if="!isGeoFilterActive">Znajdź blisko mnie</span>
         <span v-else>Pokaż wszystkie</span>
@@ -28,13 +27,11 @@
       
     </div>
 
-    <!-- Status lokalizacji -->
     <div v-if="locationStatus" class="location-status">{{ locationStatus }}</div>
 
     <div v-if="loading" class="loading-message">Ładowanie restauracji...</div>
     <div v-if="error" class="error-message">Błąd: {{ error }}</div>
 
-    <!-- Lista restauracji (bez zmian) -->
     <ul class="restaurant-cards-grid" v-if="restaurants.length">
       <li v-for="restaurant in restaurants" :key="restaurant.id" class="restaurant-card">
         <router-link :to="{ name: 'RestaurantDetail', params: { id: restaurant.id }}" class="card-link">
@@ -65,12 +62,10 @@ const searchQuery = ref('');
 const menuTypeFilter = ref('');
 const sortBy = ref('name');
 
-// --- NOWA, POPRAWIONA LOGIKA LOKALIZACJI ---
-const locationQuery = ref(''); // Tekst w polu do wpisywania lokalizacji
-const isGeoFilterActive = ref(false); // Flaga, czy aktywny jest tryb "blisko mnie"
-const locationStatus = ref(''); // Komunikaty dla użytkownika
+const locationQuery = ref(''); 
+const isGeoFilterActive = ref(false); 
+const locationStatus = ref('');
 
-// Główna funkcja pobierająca restauracje, zawsze używa wartości z locationQuery
 const fetchRestaurants = async () => {
   loading.value = true;
   error.value = null;
@@ -78,7 +73,7 @@ const fetchRestaurants = async () => {
     const params = {
       search: searchQuery.value,
       menu_type: menuTypeFilter.value,
-      near: locationQuery.value, // Zawsze filtrujemy po tym, co jest w polu input
+      near: locationQuery.value,
       sort_by: sortBy.value,
     };
     const response = await axios.get('/restaurants', { params });
@@ -91,29 +86,23 @@ const fetchRestaurants = async () => {
   }
 };
 
-// Funkcja obsługująca ręczne wpisywanie lokalizacji
+
 const handleManualLocationInput = () => {
-  // Gdy użytkownik sam coś wpisuje, wyłączamy tryb "blisko mnie"
   isGeoFilterActive.value = false;
   locationStatus.value = locationQuery.value ? `Filtrowanie ręczne: ${locationQuery.value}` : '';
   fetchRestaurants();
 };
 
-// Funkcja przełączająca tryb geolokalizacji
 const toggleGeoFilter = () => {
   if (isGeoFilterActive.value) {
-    // Jeśli filtr jest aktywny, wyłącz go
     isGeoFilterActive.value = false;
-    locationQuery.value = ''; // Wyczyść pole input
+    locationQuery.value = ''; 
     locationStatus.value = 'Wyłączono filtr lokalizacji.';
     fetchRestaurants();
   } else {
-    // Jeśli filtr nie jest aktywny, uruchom geolokalizację
     findAndFilterByLocation();
   }
 };
-
-// Funkcja pobierająca lokalizację i uruchamiająca filtrowanie
 const findAndFilterByLocation = () => {
   if (!navigator.geolocation) {
     locationStatus.value = 'Geolokalizacja nie jest wspierana przez Twoją przeglądarkę.';
@@ -139,9 +128,9 @@ const findAndFilterByLocation = () => {
           locationStatus.value = 'Nie udało się zidentyfikować miasta. Ustawiono domyślną lokalizację: Poznań';
         }
         
-        isGeoFilterActive.value = true; // Włącz tryb "blisko mnie"
-        locationQuery.value = foundCity; // Wypełnij pole input
-        fetchRestaurants(); // Odśwież listę
+        isGeoFilterActive.value = true; 
+        locationQuery.value = foundCity;
+        fetchRestaurants(); 
       } catch (err) {
         handleLocationError('Błąd pobierania nazwy miasta.');
       }
@@ -152,10 +141,10 @@ const findAndFilterByLocation = () => {
   );
 };
 
-// Pomocnicza funkcja do obsługi błędów lokalizacji
+
 const handleLocationError = (message) => {
   console.error(message);
-  isGeoFilterActive.value = true; // Włączamy tryb, ale z domyślną lokalizacją
+  isGeoFilterActive.value = true;
   locationQuery.value = 'Poznań';
   locationStatus.value = `${message} Ustawiono domyślną lokalizację: Poznań`;
   fetchRestaurants();
@@ -206,7 +195,7 @@ onMounted(fetchRestaurants);
 }
 
 .btn-location.active {
-  background-color: #dc3545; /* Czerwony, gdy filtr "blisko mnie" jest aktywny */
+  background-color: #dc3545; 
   border-color: #dc3545;
 }
 
@@ -229,6 +218,5 @@ onMounted(fetchRestaurants);
   margin-top: 20px;
   font-size: 1.1em;
 }
-/* Reszta stylów bez zmian */
 .error-message{color:red}.restaurant-cards-grid{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}.restaurant-card{border:1px solid #ddd;border-radius:8px;overflow:hidden;box-shadow:0 2px 5px rgba(0,0,0,.1);transition:transform .2s ease-in-out;display:flex;flex-direction:column}.restaurant-card:hover{transform:translateY(-5px)}.card-link{text-decoration:none;color:inherit;display:flex;flex-direction:column;height:100%}.restaurant-photo{width:100%;height:180px;object-fit:cover}.card-content{padding:15px;flex-grow:1;display:flex;flex-direction:column}.card-content h2{font-size:1.5em;margin-top:0;margin-bottom:10px;color:#333}.card-content p{font-size:.95em;color:#666;margin-bottom:5px}.rating-info{font-size:.9em;color:#007bff;margin-top:auto;padding-top:10px;font-weight:700}
 </style>

@@ -164,7 +164,7 @@ const reviews = [
     { restaurant_name: "Motyla Noga", user_username: "AnnaNowak", rating: 4, comment: "Ciekawy wybór piw rzemieślniczych i przytulna atmosfera. Idealne na wieczorny wypad." }
 ];
 
-// --- FUNKCJE POMOCNICZE I LOGIKA SKRYPTU (bez zmian) ---
+// --- FUNKCJE POMOCNICZE I LOGIKA SKRYPTU ---
 
 function runQuery(db, sql, params = []) {
     return new Promise((resolve, reject) => {

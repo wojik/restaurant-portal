@@ -14,7 +14,6 @@
       <button type="submit" class="btn-primary">Zaloguj</button>
       <p v-if="message" class="message-error">{{ message }}</p>
     </form>
-    <!-- DODAJ TEN LINK -->
     <div class="extra-links">
       <router-link to="/forgot-password">Nie pamiętasz hasła?</router-link>
     </div>
@@ -22,7 +21,6 @@
 </template>
 
 <script setup>
-// ... kod <script setup> bez zmian
 import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -47,7 +45,6 @@ const handleLogin = async () => {
 </script>
 
 <style scoped>
-/* Dodaj style dla nowego linku */
 .extra-links {
   margin-top: 15px;
   text-align: center;

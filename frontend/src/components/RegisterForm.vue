@@ -38,7 +38,6 @@ const handleRegister = async () => {
     await axios.post('/register', { username: username.value, email: email.value, password: password.value });
     message.value = 'Rejestracja pomyślna! Możesz się teraz zalogować.';
     messageType.value = 'success';
-    // Wyczyść formularz
     username.value = '';
     email.value = '';
     password.value = '';

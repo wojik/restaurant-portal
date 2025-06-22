@@ -57,9 +57,8 @@ const addRestaurant = async () => {
     await axios.post('/restaurants', restaurant.value);
     message.value = 'Restauracja dodana pomyślnie!';
     messageType.value = 'success';
-    // Wyczyść formularz
     restaurant.value = { name: '', address: '', description: '', position: '', photo_url: '', menu_types: '' };
-    router.push('/'); // Przekieruj na listę restauracji
+    router.push('/');
   } catch (err) {
     console.error('Błąd dodawania restauracji:', err.response?.data || err);
     message.value = err.response?.data?.message || 'Nie udało się dodać restauracji.';
