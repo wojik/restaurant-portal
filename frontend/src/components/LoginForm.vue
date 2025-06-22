@@ -14,10 +14,15 @@
       <button type="submit" class="btn-primary">Zaloguj</button>
       <p v-if="message" class="message-error">{{ message }}</p>
     </form>
+    <!-- DODAJ TEN LINK -->
+    <div class="extra-links">
+      <router-link to="/forgot-password">Nie pamiętasz hasła?</router-link>
+    </div>
   </div>
 </template>
 
 <script setup>
+// ... kod <script setup> bez zmian
 import { ref } from 'vue';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
@@ -32,11 +37,26 @@ const handleLogin = async () => {
   message.value = '';
   try {
     const response = await axios.post('/login', { username: username.value, password: password.value });
-    login(response.data.token, response.data.username); // Zapisz token i nazwę użytkownika
-    router.push('/'); // Przekieruj na stronę główną
+    login(response.data.token, response.data.username);
+    router.push('/');
   } catch (err) {
     console.error('Błąd logowania:', err.response?.data || err);
     message.value = err.response?.data?.message || 'Nie udało się zalogować.';
   }
 };
 </script>
+
+<style scoped>
+/* Dodaj style dla nowego linku */
+.extra-links {
+  margin-top: 15px;
+  text-align: center;
+}
+.extra-links a {
+  color: #007bff;
+  text-decoration: none;
+}
+.extra-links a:hover {
+  text-decoration: underline;
+}
+</style>
